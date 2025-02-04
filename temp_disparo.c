@@ -12,6 +12,34 @@ bool led_red_active = false;
 bool led_blue_active = false;
 bool led_green_active = false;
 
+//função que será acionada quando o botão for pressionado
+int64_t turn_off_callback(alarm_id_t id, void *user_data){
+    //condição para acionamento de cada led
+    if(led_red_active == false && led_blue_active == false && led_green_active == false){
+        gpio_put(led_red, true);
+        gpio_put(led_blue, true);
+        gpio_put(led_green, true);
+
+        led_red_active = true;
+        led_blue_active = true;
+        led_green_active = true;
+    } else if (led_red_active == true && led_blue_active == true && led_green_active == true){
+        gpio_put(led_red, false);
+        
+        led_red_active = false;
+    } else if (led_red_active == false && led_blue_active == true && led_green_active == true){
+        gpio_put(led_blue, false);
+
+        led_blue_active = false;
+    } else if (led_red_active == false && led_blue_active == false && led_green_active == true){
+        gpio_put(led_green, false);
+
+        led_green_active = false
+    }
+    
+    return 0
+}
+
 
 
 
