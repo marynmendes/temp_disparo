@@ -12,43 +12,68 @@ bool led_red_active = false;
 bool led_blue_active = false;
 bool led_green_active = false;
 
-//função que será acionada quando o botão for pressionado
+//função após o fim da rotina dos leds
 int64_t turn_off_callback(alarm_id_t id, void *user_data){
-    //condição para acionamento de cada led
-    if(led_red_active == false && led_blue_active == false && led_green_active == false){
-        gpio_put(led_red, true);
-        gpio_put(led_blue, true);
-        gpio_put(led_green, true);
-
-        led_red_active = true;
-        led_blue_active = true;
-        led_green_active = true;
-    } else if (led_red_active == true && led_blue_active == true && led_green_active == true){
-        gpio_put(led_red, false);
         
         led_red_active = false;
-    } else if (led_red_active == false && led_blue_active == true && led_green_active == true){
-        gpio_put(led_blue, false);
-
         led_blue_active = false;
-    } else if (led_red_active == false && led_blue_active == false && led_green_active == true){
-        gpio_put(led_green, false);
-
-        led_green_active = false
-    }
+        led_green_active = false;
     
-    return 0
+    return 0;
 }
-
-
-
 
 int main()
 {
     stdio_init_all();
+    //inicialização de cada led e do botão
+    gpio_init(led_red);
+    gpio_init(led_blue);
+    gpio_init(led_green);
+    gpio_init(button_a);
+
+    //configuração dos leds como saída
+    gpio_set_dir(led_red, true);
+    gpio_set_dir(led_blue, true);
+    gpio_set_dir(led_green, true);
+
+    //configuração do botão como entrada
+    gpio_set_dir(button_a, GPIO_IN);
+
+    //habilita o resistor pull-up interno para o pino do botão.
+    gpio_pull_up(button_a);
 
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+         // Verifica se o botão foi pressionado (nível baixo no pino) e se o LED não está ativo.
+        if (gpio_get(button_a) == 0 && !(led_red_active == false && led_blue_active == false && led_green_active == false)) {
+            sleep_ms(50);
+            // Verifica novamente o estado do botão após o debounce.
+            if (gpio_get(button_a) == 0) {
+                //condições para acionamento de leds
+                if(led_red_active == false && led_blue_active == false && led_green_active == false){
+                    gpio_put(led_red, true);
+                    gpio_put(led_blue, true);
+                    gpio_put(led_green, true);
+
+                    led_red_active = true;
+                    led_blue_active = true;
+                    led_green_active = true;
+                } else if (led_red_active == true && led_blue_active == true && led_green_active == true){
+                    gpio_put(led_red, false);
+        
+                    led_red_active = false;
+                } else if (led_red_active == false && led_blue_active == true && led_green_active == true){
+                    gpio_put(led_blue, false);
+
+                    led_blue_active = false;
+                } else if (led_red_active == false && led_blue_active == false && led_green_active == true){
+                    gpio_put(led_green, false);
+
+                    led_green_active = false;
+                }
+                
+                add_alarm_in_ms(3000, turn_off_callback, NULL, false);
+            }
+        }
     }
+
 }
